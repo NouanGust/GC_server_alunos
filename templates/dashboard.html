@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Portal do Aluno/Professor</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; padding: 30px; max-width: 900px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #444; padding-bottom: 10px; margin-bottom: 20px; }
+        .btn-sair { background: #ff4444; color: white; padding: 5px 15px; text-decoration: none; border-radius: 5px; }
+        .painel { background: #2d2d2d; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #00ff88; }
+        .btn { background: #00ff88; color: black; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #333; margin: 5px 0; padding: 10px; border-radius: 5px; }
+        a { color: #00d4ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        input, select { padding: 8px; margin: 5px 0; width: 90%; border-radius: 4px; border: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Olá, {{ session['usuario'] }} {% if session['role'] == 'professor' %}(Professor){% endif %}</h2>
+        <a href="/logout" class="btn-sair">Sair</a>
+    </div>
+
+    {% if session['role'] == 'professor' %}
+    <div class="grid-prof">
+        <div class="painel">
+            <h3 style="margin-top: 0; color: #00ff88;">📤 Enviar Material</h3>
+            <form method="post" enctype="multipart/form-data" action="/upload">
+                <select name="curso_destino" required>
+                    {% for curso in cursos_disponiveis %}
+                        <option value="{{ curso }}">{{ curso }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <input type="file" name="file" required style="background: white; color: black;">
+                <br><br>
+                <button type="submit" class="btn">Enviar Arquivo</button>
+            </form>
+        </div>
+
+        <div class="painel" style="border-left-color: #00d4ff;">
+            <h3 style="margin-top: 0; color: #00d4ff;">👥 Cadastrar Novo Aluno</h3>
+            <form method="post" action="/cadastrar_aluno">
+                <input type="text" name="novo_usuario" placeholder="Nome de usuário" required>
+                <input type="password" name="nova_senha" placeholder="Senha" required>
+                <select name="curso_aluno" required>
+                    {% for curso in cursos_disponiveis %}
+                        <option value="{{ curso }}">{{ curso }}</option>
+                    {% endfor %}
+                </select>
+                <br><br>
+                <button type="submit" class="btn" style="background: #00d4ff;">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <h3>Arquivos da Turma: {{ session['curso'] if session['role'] != 'professor' else 'Todos os Cursos' }}</h3>
+    
+    {% for curso, arquivos in arquivos_por_curso.items() %}
+        <h4 style="color: #aaa; margin-bottom: 5px;">📁 Pasta: {{ curso }}</h4>
+        {% if arquivos %}
+            <ul>
+            {% for file in arquivos %}
+                <li><a href="/download/{{ curso }}/{{ file }}">📄 {{ file }}</a></li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p style="color: #666; font-size: 14px;">Nenhum arquivo nesta pasta.</p>
+        {% endif %}
+    {% endfor %}
+
+</body>
+</html>
